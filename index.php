@@ -1,6 +1,6 @@
 <?php
 
-require_once('facebook.php');
+require_once('src/facebook.php');
 
 // Create our Application instance (replace this with your appId and secret).
 $facebook = new Facebook(array(
