@@ -1,47 +1,134 @@
 <?php
-    require_once 'facebook.php';
-    
-    $appId = '160032724121022'; //appid from facebook
-    $secret = 'a8fa687e01d1eaa1c7b984223c764490'; //secret from facebook
-    $groupId = '130411277057132'; //facebook groupid
-    
-    $facebook = new Facebook(array(
-      'appId'  => $appId,
-      'secret' => $secret,
-      'cookie' => true,
-    ));
-	
-	$user = $facebook->getUser();
-if ($user)
-{
-$logoutUrl = $facebook->getLogoutUrl();
-try 
-{
-$userdata = $facebook->api('/me');
-} 
-catch (FacebookApiException $e) {
-error_log($e);
-$user = null;
-}
-$_SESSION['facebook']=$_SESSION;
-$_SESSION['userdata'] = $userdata;
-$_SESSION['logout'] = $logoutUrl;
-//Redirecting to home.php
-header("Location: home.php"); 
-}
-else
-{ 
-$loginUrl = $facebook->getLoginUrl(array(
- 'scope' => 'email,user_birthday'
+
+require_once('facebook.php');
+
+// Create our Application instance (replace this with your appId and secret).
+$facebook = new Facebook(array(
+  'appId'  => 'xxx',
+  'secret' => 'xxx',
+  'cookie' => true,
 ));
-echo '<a href="'.$loginUrl.'">Login with Facebook</a>';
+
+
+$session = $facebook->getSession();
+
+$me = null;
+// Session based API call.
+if ($session) {
+  try {
+    $uid = $facebook->getUser();
+    $me = $facebook->api('/me');
+  } catch (FacebookApiException $e) {
+    error_log($e);
+  }
 }
-    
-    $response = $facebook->api('/'.$groupId.'/feed', array('limit' => 6, 'fields'=>'from,message,created_time'));    
-    print "<div class='facebook-feed-title'>Facebook Feed</div>";
-    foreach ($response['data'] as $value) {
-        print "<div class='facebook-from'><a href='http://www.facebook.com/home.php?#!/profile.php?id=".$value['from']['id']."'>".$value['from']['name']."</a> wrote:</div>";
-        print "<div class='facebook-message'>".$value['message']."</div>";
-        
+
+// login or logout url will be needed depending on current user state.
+
+if (!$me) {
+ $loginUrl = $facebook->getLoginUrl();
+
+
+} else {
+
+  // $fbme is valid i.e. user can access our app
+  $logoutUrl = $facebook->getLogoutUrl();
+}   
+
+
+// This call will always work since we are fetching public data.
+
+
+?>
+<!doctype html>
+<html xmlns:fb="http://www.facebook.com/2008/fbml">
+  <head>
+    <title>php-sdk</title>
+    <style>
+      body {
+        font-family: 'Lucida Grande', Verdana, Arial, sans-serif;
+      }
+      h1 a {
+        text-decoration: none;
+        color: #3b5998;
+      }
+      h1 a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+      We use the JS SDK to provide a richer user experience. For more info,
+      look here: http://github.com/facebook/connect-js
+    -->
+    <div id="fb-root"></div>
+    <script>
+      window.fbAsyncInit = function() {
+        FB.init({
+          appId   : '<?php echo $facebook->getAppId(); ?>',
+          session : <?php echo json_encode($session); ?>, // don't refetch the session when PHP already has it
+          status  : true, // check login status
+          cookie  : true, // enable cookies to allow the server to access the session
+          xfbml   : true // parse XFBML
+        });
+
+
+FB.login(function(response) {
+  if (response.session) {
+    if (response.perms) {
+      // user is logged in and granted some permissions.
+      // perms is a comma separated list of granted permissions
+    } else {
+      // user is logged in, but did not grant any permissions
     }
+  } else {
+    // user is not logged in
+  }
+}, {perms:'read_stream'});
+
+
+        // whenever the user logs in, we refresh the page
+        FB.Event.subscribe('auth.login', function() {
+          window.location.reload();
+        });
+      };
+
+      (function() {
+        var e = document.createElement('script');
+        e.src = document.location.protocol + '//connect.facebook.net/en_US/all.js';
+        e.async = true;
+        document.getElementById('fb-root').appendChild(e);
+      }());
+    </script>
+
+
+    <h1>I love you</h1>
+
+    <?php if ($me): ?>
+    <a href="<?php echo $logoutUrl; ?>">
+      <img src="http://static.ak.fbcdn.net/rsrc.php/z2Y31/hash/cxrz4k7j.gif">
+    </a>
+    <?php else: ?>
+    <div>
+      Using JavaScript &amp; XFBML: <fb:login-button></fb:login-button>
+    </div>
+    <?php endif ?>
+
+    <h3>Session</h3>
+    <?php if ($me): ?>
+    <pre><?php print_r($session); ?></pre>
+
+    <h3>You</h3>
+    <img src="https://graph.facebook.com/<?php echo $uid; ?>/picture">
+    <?php echo $me['name']; ?>
+
+    <h3>Your User Object</h3>
+    <pre><?php print_r($me); ?></pre>
+    <?php else: ?>
+    <strong><em>You are not Connected.</em></strong>
+    <?php endif ?>
+
+  </body>
+</html>
 ?>
