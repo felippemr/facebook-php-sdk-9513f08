@@ -63,7 +63,7 @@ if (!$me) {
       look here: http://github.com/facebook/connect-js
     -->
     <div id="fb-root"></div>
-    <script>
+    <script src="//connect.facebook.net/en_US/all.js">
       window.fbAsyncInit = function() {
         FB.init({
           appId   : '<?php echo $facebook->getAppId(); ?>',
