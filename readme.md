@@ -1,77 +1,39 @@
-Facebook PHP SDK (v.3.1.1)
-==========================
+Facebook/Heroku sample app -- PHP
+=================================
 
-The [Facebook Platform](http://developers.facebook.com/) is
-a set of APIs that make your application more social. Read more about
-[integrating Facebook with your web site](http://developers.facebook.com/docs/guides/web)
-on the Facebook developer site.
+This is a sample app showing use of the Facebook Graph API, written in PHP, designed for deployment to [Heroku](http://www.heroku.com/).
 
-This repository contains the open source PHP SDK that allows you to utilize the
-above on your website. Except as otherwise noted, the Facebook PHP SDK
-is licensed under the Apache Licence, Version 2.0
-(http://www.apache.org/licenses/LICENSE-2.0.html)
+Run locally
+-----------
 
+Configure Apache with a `VirtualHost` that points to the location of this code checkout on your system.
 
-Usage
------
+[Create an app on Facebook](https://developers.facebook.com/apps) and set the Website URL to your local VirtualHost.
 
-The [examples][examples] are a good place to start. The minimal you'll need to
-have is:
+Copy the App ID and Secret from the Facebook app settings page into your `VirtualHost` config, something like:
 
-    require 'php-sdk/src/facebook.php';
+    <VirtualHost *:80>
+        DocumentRoot /Users/adam/Sites/myapp
+        ServerName myapp.localhost
+        SetEnv FACEBOOK_APP_ID 160032724121022
+        SetEnv FACEBOOK_SECRET a8fa687e01d1eaa1c7b984223c764490
+    </VirtualHost>
 
-    $facebook = new Facebook(array(
-      'appId'  => 'YOUR_APP_ID',
-      'secret' => 'YOUR_APP_SECRET',
-    ));
+Restart Apache, and you should be able to visit your app at its local URL.
 
-    // Get User ID
-    $user = $facebook->getUser();
+Deploy to Heroku via Facebook integration
+-----------------------------------------
 
-To make [API][API] calls:
+The easiest way to deploy is to create an app on Facebook and click Cloud Services -> Get Started, then choose PHP from the dropdown.  You can then `git clone` the resulting app from Heroku.
 
-    if ($user) {
-      try {
-        // Proceed knowing you have a logged in user who's authenticated.
-        $user_profile = $facebook->api('/me');
-      } catch (FacebookApiException $e) {
-        error_log($e);
-        $user = null;
-      }
-    }
+Deploy to Heroku directly
+-------------------------
 
-Login or logout url will be needed depending on current user state.
+If you prefer to deploy yourself, push this code to a new Heroku app on the Cedar stack, then copy the App ID and Secret into your config vars:
 
-    if ($user) {
-      $logoutUrl = $facebook->getLogoutUrl();
-    } else {
-      $loginUrl = $facebook->getLoginUrl();
-    }
+    heroku create --stack cedar
+    git push heroku master
+    heroku config:add     FACEBOOK_APP_ID=160032724121022 FACEBOOK_SECRET=a8fa687e01d1eaa1c7b984223c764490
 
-[examples]: http://github.com/facebook/php-sdk/blob/master/examples/example.php
-[API]: http://developers.facebook.com/docs/api
-
-
-Feedback
---------
-
-File bugs or other issues [here].
-
-[here]: http://bugs.developers.facebook.net/
-
-
-
-Tests
------
-
-In order to keep us nimble and allow us to bring you new functionality, without
-compromising on stability, we have ensured full test coverage of the new SDK.
-We are including this in the open source repository to assure you of our
-commitment to quality, but also with the hopes that you will contribute back to
-help keep it stable. The easiest way to do so is to file bugs and include a
-test case.
-
-The tests can be executed by using this command from the base directory:
-
-    phpunit --stderr --bootstrap tests/bootstrap.php tests/tests.php
+Enter the URL for your Heroku app into the Website URL section of the Facebook app settings page, hen you can visit your app on the web.
 
