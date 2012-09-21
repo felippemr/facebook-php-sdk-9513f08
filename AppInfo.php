@@ -20,14 +20,14 @@ class AppInfo {
    * @return the appID for this app
    */
   public static function appID() {
-    return getenv('FACEBOOK_APP_ID');
+    return getenv('160032724121022');
   }
 
   /**
    * @return the appSecret for this app
    */
   public static function appSecret() {
-    return getenv('FACEBOOK_SECRET');
+    return getenv('a8fa687e01d1eaa1c7b984223c764490');
   }
 
   /**
